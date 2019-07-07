@@ -1,6 +1,6 @@
 var API_KEY = "a0f89cba2c69ec7665661065801a7850";
-var base_url = "https://api.themoviedb.org/3/"
-var page = 1
+var base_url = "https://api.themoviedb.org/3/";
+var page = 1;
 
 $(function() {
 	nowShowing()
@@ -69,21 +69,21 @@ function searchMovie(query){
 		async: false,
 		dataType: "json",
 		success: function(data) {
-			var mov = data.results
-			$(".label").remove()
+			var mov = data.results;
+			$(".label").remove();
 			$(".top").remove();
 			$(".result").remove();
 			if(mov.length == 0){
 				alert(" Sorry! No match found. ")
 			}
 			$("#result").html();
-			$("#result").append("<h2 class='result'>Top Results</h2><br>")
+			$("#result").append("<h2 class='result'>Top Results</h2><br>");
 			for(var i=0; i < mov.length; i++){
-				var img_base = "http://image.tmdb.org/t/p/"
-				var path =   img_base + "original/"+ mov[i].backdrop_path 
-				var vid_path = base_url + "movie/" + mov[i].id + "/videos?api_key=" + API_KEY
-				var vidLink = vidCall(vid_path)
-				var genre = getGenre(mov[i].genre_ids[0])
+				var img_base = "http://image.tmdb.org/t/p/";
+				var path =   img_base + "original/"+ mov[i].backdrop_path;
+				var vid_path = base_url + "movie/" + mov[i].id + "/videos?api_key=" + API_KEY;
+				var vidLink = vidCall(vid_path);
+				var genre = getGenre(mov[i].genre_ids[0]);
 				var status = "Click for video";
 				if(vidLink == null){
 					status = "No video available"
@@ -102,8 +102,8 @@ function searchMovie(query){
 }
 
 function vidCall(url){
-	var vid_path = url
-	var yt = "https://www.youtube.com/watch?v="
+	var yt = "https://www.youtube.com/watch?v=";
+	var vid_path = url;
 	var key;
 	var link;
 	$.ajax({
@@ -119,7 +119,6 @@ function vidCall(url){
 				key = vid.results[0].key
 				link = yt + key
 			}
-			console.log(vid)
 		}
 	})
 	console.log(link)
@@ -127,7 +126,7 @@ function vidCall(url){
 }
 
 function getGenre(id){
-	var url = base_url + "genre/movie/list?api_key=" + API_KEY + "&language=en-US"
+	var url = base_url + "genre/movie/list?api_key=" + API_KEY + "&language=en-US";
 	var genre;
 	$.ajax({
 		url: url,
@@ -143,6 +142,5 @@ function getGenre(id){
 			}
 		}
 	})
-	console.log(genre)
 	return genre
 }
