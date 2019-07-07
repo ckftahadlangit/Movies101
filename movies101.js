@@ -1,20 +1,18 @@
-var API_KEY = "api_key=a0f89cba2c69ec7665661065801a7850";
-var base = "https://api.themoviedb.org/3/"
+var API_KEY = "a0f89cba2c69ec7665661065801a7850";
+var base_url = "https://api.themoviedb.org/3/"
+var page = 1
 
 $(function() {
-  // enter
-    $("#query").keypress(function(e){
+	nowShowing()
+    $("#query").keypress(function(e) {
     	if(e.keyCode===13){
-    	console.log("-------------")
     	var query = $("#query").val();
 		searchMovie(query)	
     	}
     });
-// click ajax call
     $("#search").on("click", function() {
     	var query = $("#query").val();
 		searchMovie(query)
-		
 		.done(function() {
 			console.log("DONE!");
 		})
@@ -22,42 +20,82 @@ $(function() {
 			console.log("Error");
 		})
 		.always(function() {
-			console.log("Action Completed");
+			console.log("Action Completed.");
 		});
-		
     });
 });
 
-function searchMovie(query){
-	var url = "https://api.themoviedb.org/3/search/movie?"+ API_KEY + "&query=" + query;
+function nowShowing(){
+	var page = 1;
+	var url = "https://api.themoviedb.org/3/movie/now_playing?api_key="+ API_KEY + "&page=" + page;
 	$.ajax({
 		url: url,
 		type: 'GET',
 		contentType: "application/json; charset=utf-8",
 		async: false,
 		dataType: "json",
-		success: function(data, status, jqXHR) {
-			console.log(data);
+		success: function(data) {
 			var mov = data.results
-			if(mov.length == 0){
-				alert(" No match found. ")
-			}
-			$("#result").html();
-			for(var i=0; i < mov.length; i++){
-				console.log("here")
+			$("#top").html();
+			for(var i=0; i < 6; i++){
 				var img_base = "http://image.tmdb.org/t/p/"
 				var path =   img_base + "original/"+ mov[i].backdrop_path 
-				var vid_path = base + "movie/" + mov[i].id + "/videos?" + API_KEY
+				var vid_path = base_url + "movie/" + mov[i].id + "/videos?api_key=" + API_KEY
 				var vidLink = vidCall(vid_path)
-				var status = "Click for video.";
-				// console.log(key)
+				var genre = getGenre(mov[i].genre_ids[0])
+				var status = "Click for video";
 				if(vidLink == null){
-					status = "No video available."
+					status = "No video available"
 				}
 				if(mov[i].backdrop_path == null){
 					path = "img/notfound.jpg"
 				}
-				$("#result").append("<div><div class='well'><table class='card'><td><a href="+ vidLink + "><h2>" + mov[i].title + "</h2><img src=" + path + "></img><h3>" +  status + "</h3><br><p>" + mov[i].overview + "<div><br><h4>" + "Date Released: " + mov[i].release_date +  "<t><t><t><t> Vote Count: " + mov[i].vote_count + "</h4>" + "</p></a></td></table></div></div></div>");
+				$("#top").append("<div><div class='top'>" + "<table class='top_card'><td><a href="+ 
+																				vidLink + "><h2>" + mov[i].title + "</h2><img src=" + path + "></img><h3>" +  
+																				status + "</h3><br><p>" + mov[i].overview + "<div><br><h4>" + "Date Released: " + 
+																				mov[i].release_date +  "<t><t><t><t> Vote Count: " + mov[i].vote_count + "  Genre: " + 
+																				genre + "</h4>" + "</p></a></td></table></div></div></div>");
+			}
+		}
+	})
+}
+
+function searchMovie(query){
+	var url = "https://api.themoviedb.org/3/search/movie?api_key="+ API_KEY + "&query=" + query + "&page=" + page;
+	$.ajax({
+		url: url,
+		type: 'GET',
+		contentType: "application/json; charset=utf-8",
+		async: false,
+		dataType: "json",
+		success: function(data) {
+			var mov = data.results
+			$(".label").remove()
+			$(".top").remove();
+			$(".result").remove();
+			if(mov.length == 0){
+				alert(" Sorry! No match found. ")
+			}
+			$("#result").html();
+			$("#result").append("<h2 class='result'>Top Results</h2><br>")
+			for(var i=0; i < mov.length; i++){
+				var img_base = "http://image.tmdb.org/t/p/"
+				var path =   img_base + "original/"+ mov[i].backdrop_path 
+				var vid_path = base_url + "movie/" + mov[i].id + "/videos?api_key=" + API_KEY
+				var vidLink = vidCall(vid_path)
+				var genre = getGenre(mov[i].genre_ids[0])
+				var status = "Click for video";
+				if(vidLink == null){
+					status = "No video available"
+				}
+				if(mov[i].backdrop_path == null){
+					path = "img/notfound.jpg"
+				}
+				$("#result").append("<div><div class='result'>" + "<table class='card'><td><a href="+ 
+																				vidLink + "><h2>" + mov[i].title + "</h2><img src=" + path + "></img><h3>" +  
+																				status + "</h3><br><p>" + mov[i].overview + "<div><br><h4>" + "Date Released: " + 
+																				mov[i].release_date +  "<t><t><t><t> Vote Count: " + mov[i].vote_count + "  Genre: " + 
+																				genre + "</h4>" + "</p></a></td></table></div></div></div>");
 			}
 		}
 	})
@@ -75,11 +113,12 @@ function vidCall(url){
 		async: false,
         dataType: "json",
 		success: function(vid){
-			key = vid.results[0].key
 			if(vid.results.length == 0){
 				link = null
+			}else{
+				key = vid.results[0].key
+				link = yt + key
 			}
-			link = yt + key
 			console.log(vid)
 		}
 	})
@@ -87,7 +126,23 @@ function vidCall(url){
 	return link
 }
 
-function noVid(){
-	alert("Sorry! No video available for this movie..")
-	return
+function getGenre(id){
+	var url = base_url + "genre/movie/list?api_key=" + API_KEY + "&language=en-US"
+	var genre;
+	$.ajax({
+		url: url,
+		type: 'GET',
+		contentType: "application/json; charset=utf-8",
+		async: false,
+        dataType: "json",
+		success: function(data){
+				for (i = 0; i != data.genres.length; i++){
+				if(id == data.genres[i].id){
+					genre = data.genres[i].name
+				}
+			}
+		}
+	})
+	console.log(genre)
+	return genre
 }
